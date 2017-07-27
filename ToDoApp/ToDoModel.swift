@@ -14,6 +14,7 @@ class ToDoModel: Object {
     dynamic var title = ""
     dynamic var detailText = ""
     dynamic var timeStamp = ""
+    dynamic var priority = ""
     
 // Specify properties to ignore (Realm won't persist these)
     

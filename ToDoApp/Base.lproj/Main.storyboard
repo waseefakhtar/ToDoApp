@@ -9,7 +9,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--ToDo-->
+        <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="ToDoApp" customModuleProvider="target" sceneMemberID="viewController">
@@ -64,12 +64,24 @@
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="z9L-Zf-qzc" secondAttribute="bottom" id="rN7-wk-9tg"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="ToDo" id="oLj-Xw-UV5">
+                    <navigationItem key="navigationItem" id="oLj-Xw-UV5">
+                        <nil key="title"/>
                         <barButtonItem key="leftBarButtonItem" systemItem="edit" id="zSA-Kk-x8Y">
                             <connections>
                                 <action selector="didTapEdit:" destination="BYZ-38-t0r" id="VPw-Me-IuV"/>
                             </connections>
                         </barButtonItem>
+                        <segmentedControl key="titleView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="Orn-Ic-uTX">
+                            <rect key="frame" x="103.5" y="7.5" width="168" height="29"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <segments>
+                                <segment title="Priority"/>
+                                <segment title="Date"/>
+                            </segments>
+                            <connections>
+                                <action selector="sortTodos:" destination="BYZ-38-t0r" eventType="valueChanged" id="uI2-4z-khn"/>
+                            </connections>
+                        </segmentedControl>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="9KJ-Qy-Msp">
                             <connections>
                                 <action selector="didTapAdd:" destination="BYZ-38-t0r" id="AmR-ZQ-p5t"/>

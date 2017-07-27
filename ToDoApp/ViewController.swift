@@ -19,10 +19,6 @@ class ViewController: UIViewController {
     
     var isEditingMode = false
     
-    var todosArray = [NSDictionary?]()
-    var filteredTodos = [NSDictionary?]()
-
-    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -77,6 +73,7 @@ class ViewController: UIViewController {
             
             let todoTitle = alertController.textFields?.first?.text
             let todoDetailText = alertController.textFields?[1].text
+            let todoPriority = alertController.textFields?[2].text
             
             if updatedTodo != nil{
                 // update mode
@@ -84,6 +81,7 @@ class ViewController: UIViewController {
                     updatedTodo.title = todoTitle!
                     updatedTodo.detailText = todoDetailText!
                     updatedTodo.timeStamp = dateString
+                    updatedTodo.priority = todoPriority!
                     
                     self.readTodosAndUpdateUI()
                 }
@@ -94,6 +92,7 @@ class ViewController: UIViewController {
                 newTodo.title = todoTitle!
                 newTodo.detailText = todoDetailText!
                 newTodo.timeStamp = dateString
+                newTodo.priority = todoPriority!
                 
                 try! realm.write{
                     
@@ -102,7 +101,6 @@ class ViewController: UIViewController {
                 }
             }
             
-            print(todoTitle ?? "")
         }
         
         alertController.addAction(createAction)
@@ -127,6 +125,14 @@ class ViewController: UIViewController {
             }
         }
         
+        alertController.addTextField { (textField) -> Void in
+            textField.placeholder = "Priority (0: Most Important, 2: Least Important)"
+            textField.addTarget(self, action: #selector(ViewController.listNameFieldDidChange(_:)) , for: UIControlEvents.editingChanged)
+            if updatedTodo != nil{
+                textField.text = updatedTodo.priority
+            }
+        }
+        
         self.present(alertController, animated: true, completion: nil)
     }
     
@@ -137,7 +143,23 @@ class ViewController: UIViewController {
         self.tableView.setEditing(isEditingMode, animated: true)
     }
     
-
+    @IBAction func sortTodos(_ sender: Any) {
+        
+        if (sender as AnyObject).selectedSegmentIndex == 0{
+            
+            // Sort by priority.
+            self.openTodos = self.openTodos.sorted(byKeyPath: "priority")
+            
+            
+        }
+        else {
+            // Sort by date.
+            self.openTodos = self.openTodos.sorted(byKeyPath: "timeStamp", ascending:false)
+        }
+        self.tableView.reloadData()
+    }
+    
+    
 }
 
 extension ViewController: UITableViewDelegate {
