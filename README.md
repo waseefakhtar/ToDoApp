@@ -1,5 +1,5 @@
 # ToDoApp
-A ToDoApp built using Swift 3 and Realm
+A ToDoApp built using Swift 3 and Realm 2.9.0.
 
 A simple ToDoApp using Swift and Realm as the local database. 
 
