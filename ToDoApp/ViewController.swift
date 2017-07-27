@@ -10,14 +10,18 @@ import UIKit
 import RealmSwift
 
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UISearchResultsUpdating {
 
     @IBOutlet weak var tableView: UITableView!
     
     var openTodos : Results<ToDoModel>!
+    var filteredTodos: Results<ToDoModel>!
+    
     var currentCreateAction: UIAlertAction!
     
     var isEditingMode = false
+    
+    let searchController = UISearchController(searchResultsController: nil)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,13 +31,18 @@ class ViewController: UIViewController {
         
         // Locate Realm file in local directory.
         print(Realm.Configuration.defaultConfiguration.fileURL!)
+        
+        // Setup searchbar.
+        searchController.searchResultsUpdater = self
+        searchController.dimsBackgroundDuringPresentation = false
+        definesPresentationContext = true
+        tableView.tableHeaderView = searchController.searchBar
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         readTodosAndUpdateUI()
-
     }
     
     func readTodosAndUpdateUI(){
@@ -43,6 +52,8 @@ class ViewController: UIViewController {
         
         self.tableView.reloadData()
     }
+    
+    // MARK: - Add and Update Todo
     
     @IBAction func didTapAdd(_ sender: Any) {
         
@@ -76,7 +87,7 @@ class ViewController: UIViewController {
             let todoPriority = alertController.textFields?[2].text
             
             if updatedTodo != nil{
-                // update mode
+                // Update todo mode.
                 try! realm.write{
                     updatedTodo.title = todoTitle!
                     updatedTodo.detailText = todoDetailText!
@@ -87,7 +98,7 @@ class ViewController: UIViewController {
                 }
             }
             else{
-                
+                // New todo mode.
                 let newTodo = ToDoModel()
                 newTodo.title = todoTitle!
                 newTodo.detailText = todoDetailText!
@@ -136,12 +147,16 @@ class ViewController: UIViewController {
         self.present(alertController, animated: true, completion: nil)
     }
     
+    // MARK: - Edit Todo
+    
     @IBAction func didTapEdit(_ sender: Any) {
         print("Edit Button Tapped.")
         
         isEditingMode = !isEditingMode
         self.tableView.setEditing(isEditingMode, animated: true)
     }
+    
+    // MARK: - Sort Todo
     
     @IBAction func sortTodos(_ sender: Any) {
         
@@ -159,7 +174,21 @@ class ViewController: UIViewController {
         self.tableView.reloadData()
     }
     
+    // MARK: - Search and Filter Todo
     
+    func updateSearchResults(for searchController: UISearchController) {
+        // Update search results.
+        filterContent(searchText: self.searchController.searchBar.text!)
+    }
+    
+    func filterContent(searchText: String) {
+        let predicate = NSPredicate(format: "title CONTAINS [c] %@", searchText)
+        
+        self.filteredTodos = openTodos.filter(predicate)
+        
+        tableView.reloadData()
+    }
+
 }
 
 extension ViewController: UITableViewDelegate {
@@ -167,6 +196,8 @@ extension ViewController: UITableViewDelegate {
 }
 
 extension ViewController: UITableViewDataSource {
+    
+    // MARK: - Table View Data Source
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -178,7 +209,11 @@ extension ViewController: UITableViewDataSource {
         
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {            return openTodos.count
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if searchController.isActive && searchController.searchBar.text != "" {
+            return filteredTodos.count
+        }
+        return openTodos.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -187,9 +222,13 @@ extension ViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
         
         var todo: ToDoModel!
-    
-        todo = openTodos[indexPath.row]
         
+        if searchController.isActive && searchController.searchBar.text != "" {
+            todo = filteredTodos[indexPath.row]
+        }
+        else {
+            todo = openTodos[indexPath.row]
+        }
         
         cell.textLabel?.text = todo.title
         cell.detailTextLabel?.text = todo.detailText
@@ -198,21 +237,24 @@ extension ViewController: UITableViewDataSource {
         return cell
         
     }
-
+    
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
         let deleteAction = UITableViewRowAction(style: .default, title: "Delete") { (deleteAction, indexPath) -> Void in
             
             // Delete a Todo.
             var todoToBeDeleted: ToDoModel!
-
+            
             todoToBeDeleted = self.openTodos[indexPath.row]
             
             try! realm.write{
                 realm.delete(todoToBeDeleted)
                 self.readTodosAndUpdateUI()
             }
+            
+            print("Todo Deleted.")
         }
+        
         let editAction = UITableViewRowAction(style: UITableViewRowActionStyle.normal, title: "Edit") { (editAction, indexPath) -> Void in
             
             // Edit a Todo.
@@ -222,11 +264,12 @@ extension ViewController: UITableViewDataSource {
             
             self.displayAlertToAddTodo(todoToBeUpdated)
             
+            print("Todo Edited.")
+
         }
         
         return [deleteAction, editAction]
-        
     }
-    
-    
+
+
 }
